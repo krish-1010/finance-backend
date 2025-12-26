@@ -14,6 +14,7 @@ const authRoutes = require("./routes/authRoutes");
 const financeRoutes = require("./routes/financeRoutes");
 
 const app = express();
+app.set('trust proxy', 1);
 
 // 1. Database Connection
 mongoose
