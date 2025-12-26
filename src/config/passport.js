@@ -8,8 +8,10 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       // callbackURL: "/api/auth/google/callback",
+      // callbackURL:
+      //   "https://finance-backend-ww5g.onrender.com/api/auth/google/callback",
       callbackURL:
-        "https://finance-backend-ww5g.onrender.com/api/auth/google/callback",
+        "https://growmorefinance.vercel.app/api/auth/google/callback",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {

@@ -47,13 +47,18 @@ app.use(
     resave: false,
     saveUninitialized: false,
     proxy: true,
+    // cookie: {
+    //   // secure: process.env.NODE_ENV === "production", // Set 'true' only if using HTTPS
+    //   secure: true,
+    //   // sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    //   sameSite: "none",
+    //   httpOnly: true,
+    //   maxAge: 24 * 60 * 60 * 1000, // 1 Day
+    // },
     cookie: {
-      // secure: process.env.NODE_ENV === "production", // Set 'true' only if using HTTPS
-      secure: true,
-      // sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      sameSite: "none",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 Day
+      secure: true, // Keep true (Vercel is HTTPS)
+      sameSite: "lax", // CHANGE TO "lax". It's more reliable than "none" for same-domain.
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
