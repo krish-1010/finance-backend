@@ -18,17 +18,7 @@ router.get(
   }
 );
 
-// 3. Logout
-// router.get("/logout", (req, res, next) => {
-//   req.logout((err) => {
-//     if (err) {
-//       return next(err);
-//     }
-//     res.json({ message: "Logged out" });
-//   });
-// });
-
-// Updated the Logout Route
+// 3. Logout Route
 router.post("/logout", (req, res, next) => {
   req.logout((err) => {
     if (err) {

@@ -14,7 +14,7 @@ const authRoutes = require("./routes/authRoutes");
 const financeRoutes = require("./routes/financeRoutes");
 
 const app = express();
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 // 1. Database Connection
 mongoose
@@ -46,9 +46,13 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Set 'true' only if using HTTPS
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      // secure: process.env.NODE_ENV === "production", // Set 'true' only if using HTTPS
+      secure: true,
+      // sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: "none",
+      httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 1 Day
     },
   })
