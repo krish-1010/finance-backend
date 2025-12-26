@@ -53,4 +53,7 @@ router.delete(
   financeController.deleteTransaction
 );
 
+// Add this route
+router.delete("/reset", ensureAuth, financeController.resetAccount);
+
 module.exports = router;

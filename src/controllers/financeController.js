@@ -165,3 +165,19 @@ exports.deleteTransaction = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Wipe all data for the user
+exports.resetAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    // Delete everything linked to this user
+    await Promise.all([
+      Transaction.deleteMany({ userId }),
+      require("../models/Debt").deleteMany({ userId }), // Assuming you have Debt model
+      require("../models/Asset").deleteMany({ userId }), // Assuming you have Asset model
+    ]);
+    res.json({ message: "Account reset successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

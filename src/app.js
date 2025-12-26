@@ -35,8 +35,18 @@ app.use(morgan("dev")); // Logging
 // Must be BEFORE routes
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://growmorefinance.vercel.app"], // Allow Frontend
-    credentials: true, // Allow Cookies/Sessions
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) === -1) {
+        var msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
   })
 );
 
