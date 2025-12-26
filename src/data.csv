@@ -1,0 +1,4 @@
+type,category,amount,date,description
+EXPENSE,Food,200,2025-12-26,Lunch
+EXPENSE,Travel,150,2025-12-26,Bus
+INCOME,Freelance,5000,2025-12-25,Project A
