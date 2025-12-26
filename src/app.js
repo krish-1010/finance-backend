@@ -34,7 +34,7 @@ app.use(morgan("dev")); // Logging
 // Must be BEFORE routes
 app.use(
   cors({
-    origin: "http://localhost:3000", // Allow Frontend
+    origin: ["http://localhost:3000", "https://growmorefinance.vercel.app"], // Allow Frontend
     credentials: true, // Allow Cookies/Sessions
   })
 );
