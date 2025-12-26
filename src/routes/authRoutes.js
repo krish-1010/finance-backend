@@ -16,7 +16,8 @@ router.get(
     // Successful authentication, redirect to frontend dashboard
     // For now, we just send a JSON success message
     // res.json({ message: "Login Successful", user: req.user });
-    res.redirect("http://localhost:3000/dashboard");
+    // res.redirect("http://localhost:3000/dashboard");
+    res.redirect("https://growmorefinance.vercel.app/dashboard");
   }
 );
 
