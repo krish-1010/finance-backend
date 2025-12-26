@@ -13,6 +13,12 @@ require("./config/passport"); // Loads passport strategy
 const authRoutes = require("./routes/authRoutes");
 const financeRoutes = require("./routes/financeRoutes");
 
+// Define allowed origins based on environment
+const allowedOrigins = [
+  "http://localhost:3000", // Local Frontend
+  "https://growmorefinance.vercel.app", // Production Frontend
+];
+
 const app = express();
 app.set("trust proxy", 1);
 
@@ -66,8 +72,12 @@ app.use(
     //   maxAge: 24 * 60 * 60 * 1000, // 1 Day
     // },
     cookie: {
-      secure: true, // Keep true (Vercel is HTTPS)
-      sameSite: "lax", // CHANGE TO "lax". It's more reliable than "none" for same-domain.
+      // MUST be false for localhost, true for Render
+      secure: process.env.NODE_ENV === "production",
+
+      // MUST be "lax" for localhost to work reliably
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+
       maxAge: 24 * 60 * 60 * 1000,
     },
   })

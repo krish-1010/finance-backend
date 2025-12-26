@@ -13,8 +13,10 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
-    // res.redirect("http://localhost:3000/dashboard");
-    res.redirect("https://growmorefinance.vercel.app/dashboard");
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    console.log("Authenticated user:", req.user);
+    console.log(`${frontendUrl}/dashboard`);
+    res.redirect(`${frontendUrl}/dashboard`);
   }
 );
 
