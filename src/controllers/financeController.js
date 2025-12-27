@@ -9,6 +9,7 @@ const advisorService = require("../services/advisorService");
 const Transaction = require("../models/Transaction");
 const Bill = require("../models/Bill");
 const Goal = require("../models/Goal");
+const ConsumptionItem = require("../models/ConsumptionItem");
 
 // Schema for Input Validation
 const transactionSchema = Joi.object({
@@ -237,6 +238,37 @@ exports.getGoals = async (req, res) => {
   try {
     const goals = await Goal.find({ userId: req.user.id });
     res.json(goals);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// --- SURVIVAL / AMORTIZATION ---
+exports.getConsumptionItems = async (req, res) => {
+  try {
+    const items = await ConsumptionItem.find({ userId: req.user.id });
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.addConsumptionItem = async (req, res) => {
+  try {
+    const item = await ConsumptionItem.create({
+      ...req.body,
+      userId: req.user.id,
+    });
+    res.status(201).json(item);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.deleteConsumptionItem = async (req, res) => {
+  try {
+    await ConsumptionItem.findByIdAndDelete(req.params.id);
+    res.json({ message: "Item deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

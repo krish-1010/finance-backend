@@ -63,6 +63,15 @@ router.post(
 
 router.get("/goals", ensureAuth, financeController.getGoals);
 
+// Add these lines
+router.get("/survival", ensureAuth, financeController.getConsumptionItems);
+router.post("/survival", ensureAuth, financeController.addConsumptionItem);
+router.delete(
+  "/survival/:id",
+  ensureAuth,
+  financeController.deleteConsumptionItem
+);
+
 // Add this route
 router.delete("/reset", ensureAuth, financeController.resetAccount);
 
