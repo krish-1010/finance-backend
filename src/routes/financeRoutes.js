@@ -34,7 +34,8 @@ router.post("/debts", ensureAuth, financeController.addDebt);
 router.get("/debts/strategy", ensureAuth, financeController.getDebtStrategy);
 // Add this route
 router.delete('/debts/:id', ensureAuth, financeController.deleteDebt);
-
+// Add this new route
+router.patch('/debts/:id/status', ensureAuth, financeController.toggleDebtStatus);
 // Goal Routes
 router.post("/goals", ensureAuth, financeController.addGoal);
 router.get("/fire", ensureAuth, financeController.getFIREAnalysis);

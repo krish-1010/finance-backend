@@ -93,6 +93,25 @@ exports.deleteDebt = async (req, res) => {
   }
 };
 
+// Toggle Debt Status (Active <-> Paid Off)
+exports.toggleDebtStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const debt = await require("../models/Debt").findOne({ _id: id, userId: req.user.id });
+    
+    if (!debt) return res.status(404).json({ error: "Debt not found" });
+
+    // Toggle logic
+    debt.status = debt.status === "ACTIVE" ? "PAID_OFF" : "ACTIVE";
+    debt.currentAmount = 0; // If paid off, balance is 0
+    
+    await debt.save();
+    res.json(debt);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // --- GOALS / FIRE ---
 exports.addGoal = async (req, res) => {
   try {
