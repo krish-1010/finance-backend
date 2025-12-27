@@ -1,16 +1,18 @@
 const Debt = require("../models/Debt");
-const FinanceMath = require("../utils/financeMath"); // Reusing your math file
+const FinanceMath = require("../utils/financeMath");
 
 exports.getDebtStrategy = async (userId, extraMonthlyPayment = 0) => {
   const debts = await Debt.find({ userId, status: "ACTIVE" });
 
   // 1. Sort by "Avalanche Method" (Highest Interest First)
   // If interest is same, sort by lowest balance (Snowball hybrid)
-  const sortedDebts = debts.sort((a, b) => {
-    if (b.interestRate === a.interestRate)
-      return a.currentAmount - b.currentAmount;
-    return b.interestRate - a.interestRate;
-  });
+  // 1. Sort by Avalanche (Highest Interest First)
+  const sortedDebts = debts.sort((a, b) => b.interestRate - a.interestRate);
+  // const sortedDebts = debts.sort((a, b) => {
+  //   if (b.interestRate === a.interestRate)
+  //     return a.currentAmount - b.currentAmount;
+  //   return b.interestRate - a.interestRate;
+  // });
 
   // 2. Calculate Payoff Timeline
   const strategy = sortedDebts.map((debt) => {
@@ -25,10 +27,12 @@ exports.getDebtStrategy = async (userId, extraMonthlyPayment = 0) => {
     // For MVP, we just show the timeline for the specific debt.
 
     return {
+      _id: debt._id,
       debtName: debt.name,
       remaining: debt.currentAmount,
       interest: debt.interestRate,
       monthsToFree: monthsToPay,
+      minimumPayment: debt.minimumPayment,
       priorityLevel: debt.interestRate > 10 ? "CRITICAL" : "MANAGEABLE",
     };
   });
@@ -41,4 +45,9 @@ exports.getDebtStrategy = async (userId, extraMonthlyPayment = 0) => {
 
 exports.addDebt = async (userId, data) => {
   return await Debt.create({ ...data, userId });
+};
+
+// Add this function for deletion
+exports.deleteDebt = async (userId, debtId) => {
+  return await require("../models/Debt").findOneAndDelete({ _id: debtId, userId });
 };

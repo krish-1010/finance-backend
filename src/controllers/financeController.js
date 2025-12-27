@@ -83,6 +83,16 @@ exports.getDebtStrategy = async (req, res) => {
   }
 };
 
+// Add this function
+exports.deleteDebt = async (req, res) => {
+  try {
+    await debtService.deleteDebt(req.user.id, req.params.id);
+    res.json({ message: "Debt deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // --- GOALS / FIRE ---
 exports.addGoal = async (req, res) => {
   try {
