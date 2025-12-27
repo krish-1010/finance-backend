@@ -7,6 +7,8 @@ const analyticsService = require("../services/analyticsService");
 const Asset = require("../models/Asset");
 const advisorService = require("../services/advisorService");
 const Transaction = require("../models/Transaction");
+const Bill = require("../models/Bill");
+const Goal = require("../models/Goal");
 
 // Schema for Input Validation
 const transactionSchema = Joi.object({
@@ -177,6 +179,64 @@ exports.resetAccount = async (req, res) => {
       require("../models/Asset").deleteMany({ userId }), // Assuming you have Asset model
     ]);
     res.json({ message: "Account reset successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// --- RECURRING BILLS ---
+
+// 1. Get all recurring bill templates
+exports.getBills = async (req, res) => {
+  try {
+    const bills = await Bill.find({ userId: req.user.id }).sort({ dueDay: 1 });
+    res.json(bills);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 2. Add a new recurring bill
+exports.addBill = async (req, res) => {
+  try {
+    const bill = await Bill.create({ ...req.body, userId: req.user.id });
+    res.status(201).json(bill);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 3. Process Bulk Bills (The "One Click" Feature)
+exports.processBulkBills = async (req, res) => {
+  try {
+    const { bills } = req.body; // Array of selected bill objects
+
+    // Create transaction objects from the bills
+    const transactions = bills.map((bill) => ({
+      userId: req.user.id,
+      type: "EXPENSE",
+      amount: bill.amount,
+      category: bill.category || "Bills",
+      description: `${bill.name} (Recurring)`,
+      date: new Date(), // Today's date
+    }));
+
+    // Insert all at once
+    await Transaction.insertMany(transactions);
+
+    res.json({
+      message: `Successfully processed ${transactions.length} bills.`,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ADD THIS FUNCTION:
+exports.getGoals = async (req, res) => {
+  try {
+    const goals = await Goal.find({ userId: req.user.id });
+    res.json(goals);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

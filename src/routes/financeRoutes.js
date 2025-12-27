@@ -52,6 +52,16 @@ router.delete(
   ensureAuth,
   financeController.deleteTransaction
 );
+// Add these routes
+router.get("/bills", ensureAuth, financeController.getBills);
+router.post("/bills", ensureAuth, financeController.addBill);
+router.post(
+  "/transactions/bulk",
+  ensureAuth,
+  financeController.processBulkBills
+);
+
+router.get("/goals", ensureAuth, financeController.getGoals);
 
 // Add this route
 router.delete("/reset", ensureAuth, financeController.resetAccount);
