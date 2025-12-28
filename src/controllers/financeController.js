@@ -31,6 +31,30 @@ exports.addEntry = async (req, res) => {
     // 2. Call Service
     const entry = await financeService.addTransaction(req.user.id, value);
 
+    // --- [NEW] MAGIC AUTOMATION FOR SAVINGS ---
+    // If user selected "Savings" category, automatically move money to a Goal
+    if (value.type === "EXPENSE" && value.category === "Savings") {
+      // A. Find or Create the "General Savings" Goal
+      let savingsGoal = await Goal.findOne({
+        userId: req.user.id,
+        title: "General Savings",
+      });
+
+      if (!savingsGoal) {
+        savingsGoal = await Goal.create({
+          userId: req.user.id,
+          title: "General Savings",
+          targetAmount: 1000000, // Default 10L target (editable later)
+          savedAmount: 0,
+        });
+      }
+
+      // B. Add the money to the Goal
+      savingsGoal.savedAmount += value.amount;
+      await savingsGoal.save();
+    }
+    // -------------------------------------------
+
     res.status(201).json({ success: true, data: entry });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -97,14 +121,17 @@ exports.deleteDebt = async (req, res) => {
 exports.toggleDebtStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const debt = await require("../models/Debt").findOne({ _id: id, userId: req.user.id });
-    
+    const debt = await require("../models/Debt").findOne({
+      _id: id,
+      userId: req.user.id,
+    });
+
     if (!debt) return res.status(404).json({ error: "Debt not found" });
 
     // Toggle logic
     debt.status = debt.status === "ACTIVE" ? "PAID_OFF" : "ACTIVE";
     debt.currentAmount = 0; // If paid off, balance is 0
-    
+
     await debt.save();
     res.json(debt);
   } catch (err) {
@@ -171,9 +198,12 @@ exports.getAdvice = async (req, res) => {
 // Get raw list of transactions (with pagination logic optional for later)
 exports.getTransactions = async (req, res) => {
   try {
+    // [FIX] Allow frontend to request more items (default to 50 if not specified)
+    const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+
     const transactions = await Transaction.find({ userId: req.user.id })
       .sort({ date: -1 }) // Newest first
-      .limit(50); // Limit to last 50 for now (Scalability)
+      .limit(limit); // Limit to last 50 for now (Scalability)
 
     res.json(transactions);
   } catch (err) {
