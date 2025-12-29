@@ -198,14 +198,45 @@ exports.getAdvice = async (req, res) => {
 // Get raw list of transactions (with pagination logic optional for later)
 exports.getTransactions = async (req, res) => {
   try {
-    // [FIX] Allow frontend to request more items (default to 50 if not specified)
-    const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20; // Default 20 items per page
+    const { type, month } = req.query; // Filters
 
-    const transactions = await Transaction.find({ userId: req.user.id })
+    // 1. Build the Query
+    const query = { userId: req.user.id };
+
+    // Filter by Type (INCOME / EXPENSE)
+    if (type && type !== "ALL") {
+      query.type = type;
+    }
+
+    // Filter by Month (Format: YYYY-MM)
+    if (month) {
+      const start = new Date(`${month}-01`); // e.g. 2025-08-01
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + 1); // Move to next month (2025-09-01)
+      query.date = { $gte: start, $lt: end };
+    }
+
+    // 2. Run Query with Pagination
+    const skip = (page - 1) * limit;
+
+    const transactions = await Transaction.find(query)
       .sort({ date: -1 }) // Newest first
-      .limit(limit); // Limit to last 50 for now (Scalability)
+      .skip(skip)
+      .limit(limit);
 
-    res.json(transactions);
+    // 3. Get Total Count (for calculating total pages)
+    const totalDocs = await Transaction.countDocuments(query);
+
+    res.json({
+      data: transactions,
+      meta: {
+        total: totalDocs,
+        page,
+        totalPages: Math.ceil(totalDocs / limit),
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -343,20 +374,25 @@ exports.addFundsToGoal = async (req, res) => {
   try {
     const { id } = req.params;
     const { amount } = req.body;
-    
-    const goal = await require("../models/Goal").findOne({ _id: id, userId: req.user.id });
+
+    const goal = await require("../models/Goal").findOne({
+      _id: id,
+      userId: req.user.id,
+    });
     if (!goal) return res.status(404).json({ error: "Goal not found" });
 
     // 1. Check if paused
     if (goal.status === "PAUSED") {
-      return res.status(400).json({ error: "This goal is paused. Resume it to add funds." });
+      return res
+        .status(400)
+        .json({ error: "This goal is paused. Resume it to add funds." });
     }
 
     // 2. Prevent Over-saving
     const remaining = goal.targetAmount - goal.savedAmount;
     if (Number(amount) > remaining) {
-      return res.status(400).json({ 
-        error: `You only need ${remaining} to finish this goal. Cannot add ${amount}.` 
+      return res.status(400).json({
+        error: `You only need ${remaining} to finish this goal. Cannot add ${amount}.`,
       });
     }
 
@@ -380,10 +416,14 @@ exports.addFundsToGoal = async (req, res) => {
 exports.toggleGoalStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const goal = await require("../models/Goal").findOne({ _id: id, userId: req.user.id });
-    
-    if (goal.status === "COMPLETED") return res.status(400).json({ error: "Cannot change completed goal." });
-    
+    const goal = await require("../models/Goal").findOne({
+      _id: id,
+      userId: req.user.id,
+    });
+
+    if (goal.status === "COMPLETED")
+      return res.status(400).json({ error: "Cannot change completed goal." });
+
     // Toggle
     goal.status = goal.status === "ACTIVE" ? "PAUSED" : "ACTIVE";
     await goal.save();
