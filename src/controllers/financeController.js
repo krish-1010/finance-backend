@@ -237,6 +237,9 @@ exports.resetAccount = async (req, res) => {
       Transaction.deleteMany({ userId }),
       require("../models/Debt").deleteMany({ userId }), // Assuming you have Debt model
       require("../models/Asset").deleteMany({ userId }), // Assuming you have Asset model
+      require("../models/Bill").deleteMany({ userId }),
+      require("../models/Goal").deleteMany({ userId }),
+      require("../models/ConsumptionItem").deleteMany({ userId }),
     ]);
     res.json({ message: "Account reset successfully" });
   } catch (err) {
@@ -320,6 +323,7 @@ exports.addConsumptionItem = async (req, res) => {
     });
     res.status(201).json(item);
   } catch (err) {
+    console.log({ err });
     res.status(500).json({ error: err.message });
   }
 };
@@ -328,6 +332,73 @@ exports.deleteConsumptionItem = async (req, res) => {
   try {
     await ConsumptionItem.findByIdAndDelete(req.params.id);
     res.json({ message: "Item deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// --- GOAL ENHANCEMENTS ---
+// Add funds to a goal
+exports.addFundsToGoal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount } = req.body;
+    
+    const goal = await require("../models/Goal").findOne({ _id: id, userId: req.user.id });
+    if (!goal) return res.status(404).json({ error: "Goal not found" });
+
+    // 1. Check if paused
+    if (goal.status === "PAUSED") {
+      return res.status(400).json({ error: "This goal is paused. Resume it to add funds." });
+    }
+
+    // 2. Prevent Over-saving
+    const remaining = goal.targetAmount - goal.savedAmount;
+    if (Number(amount) > remaining) {
+      return res.status(400).json({ 
+        error: `You only need ${remaining} to finish this goal. Cannot add ${amount}.` 
+      });
+    }
+
+    // 3. Add Funds
+    goal.savedAmount += Number(amount);
+
+    // 4. Auto-Complete Logic
+    if (goal.savedAmount >= goal.targetAmount) {
+      goal.status = "COMPLETED";
+      goal.completedDate = new Date();
+    }
+
+    await goal.save();
+    res.json(goal);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Add this NEW function to toggle status (Pause/Resume)
+exports.toggleGoalStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const goal = await require("../models/Goal").findOne({ _id: id, userId: req.user.id });
+    
+    if (goal.status === "COMPLETED") return res.status(400).json({ error: "Cannot change completed goal." });
+    
+    // Toggle
+    goal.status = goal.status === "ACTIVE" ? "PAUSED" : "ACTIVE";
+    await goal.save();
+    res.json(goal);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// [CORRECTED] Delete a Goal
+exports.deleteGoal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Goal.findOneAndDelete({ _id: id, userId: req.user.id });
+    res.json({ message: "Goal deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

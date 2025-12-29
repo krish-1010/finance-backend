@@ -16,11 +16,13 @@ const ConsumptionItemSchema = new mongoose.Schema(
 );
 
 // Pre-save hook to calculate monthly cost automatically
-ConsumptionItemSchema.pre("save", function (next) {
+// Use a synchronous middleware (no `next` param) to avoid
+// Mongoose calling this as an async middleware where `next`
+// may be undefined.
+ConsumptionItemSchema.pre("save", function () {
   if (this.cost && this.months) {
     this.monthlyCost = this.cost / this.months;
   }
-  next();
 });
 
 module.exports = mongoose.model("ConsumptionItem", ConsumptionItemSchema);

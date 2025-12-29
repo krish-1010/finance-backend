@@ -5,6 +5,7 @@ const passport = require("passport");
 const session = require("express-session");
 const morgan = require("morgan"); // Logger
 const cors = require("cors");
+const MongoStore = require("connect-mongo").default;
 
 // Import Configs
 require("./config/passport"); // Loads passport strategy
@@ -71,6 +72,7 @@ app.use(
     //   httpOnly: true,
     //   maxAge: 24 * 60 * 60 * 1000, // 1 Day
     // },
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
     cookie: {
       // MUST be false for localhost, true for Render
       secure: process.env.NODE_ENV === "production",

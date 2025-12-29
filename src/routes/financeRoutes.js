@@ -33,9 +33,13 @@ router.post(
 router.post("/debts", ensureAuth, financeController.addDebt);
 router.get("/debts/strategy", ensureAuth, financeController.getDebtStrategy);
 // Add this route
-router.delete('/debts/:id', ensureAuth, financeController.deleteDebt);
+router.delete("/debts/:id", ensureAuth, financeController.deleteDebt);
 // Add this new route
-router.patch('/debts/:id/status', ensureAuth, financeController.toggleDebtStatus);
+router.patch(
+  "/debts/:id/status",
+  ensureAuth,
+  financeController.toggleDebtStatus
+);
 // Goal Routes
 router.post("/goals", ensureAuth, financeController.addGoal);
 router.get("/fire", ensureAuth, financeController.getFIREAnalysis);
@@ -63,6 +67,10 @@ router.post(
   ensureAuth,
   financeController.processBulkBills
 );
+
+router.put("/goals/:id/add", ensureAuth, financeController.addFundsToGoal);
+router.put("/goals/:id/status", ensureAuth, financeController.toggleGoalStatus);
+router.delete("/goals/:id", ensureAuth, financeController.deleteGoal);
 
 router.get("/goals", ensureAuth, financeController.getGoals);
 
